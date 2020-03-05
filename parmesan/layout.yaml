@@ -1,0 +1,7 @@
+select_column:
+  - name_column
+results_as:
+  - female
+  - male
+gender_lang:
+  - gender_lang

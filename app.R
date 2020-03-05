@@ -1,162 +1,158 @@
-library(shiny)
-library(dsAppLayout)
-library(dsAppWidgets)
-library(shinycustomloader)
+library(shinypanels)
+library(parmesan)
+library(shinyinvoer)
+library(hotr)
+library(dsmodules)
+library(tidyverse)
+library(genero)
 
-styles <- "
+ui <- panelsPage(
+  panel(
+    title = "Upload Data", 
+    width = 200,
+    body = div(
+      tableInputUI("initial_data",
+                   choices = list(
+                     "Sample Data"="sampleData",
+                     "Copy & Paste"="pasted",
+                     "CSV/XLS Upload"="fileUpload",
+                     "Google Sheets" = "googleSheets"
+                   ),
+                   selected = "sampleData")
+    )
+  ),
+  panel(
+    title = "Dataset",
+    width = 300,
+    collapsed = FALSE,
+    body = div(
+      uiOutput("dataset") 
+    )
+  ),
+  panel(
+    title = "Options",
+    width = 200,
+    collapse = FALSE,
+    body = div(
+      uiOutput("controls")
+    )
+  ),
+  panel(
+    title = "Viz",
+    body = div(
+      # infomessage(p("Hello")),
+      uiOutput("result"),
+      verbatimTextOutput("debug"),
+      shinypanels::modal(id = 'test', title = 'Download plot',
+                         dsmodules::downloadFileUI("download_data_button")
+      ),
+      shinypanels::modalButton(label = "Download Data", modal_id = "test")
+    ),
+    footer = uiOutput("viz_icons")
+  )
+)
 
-.shiny-output-error {
-  visibility: hidden;
-}
+config_path <- "parmesan"
+# Reactive part
+input_ids <- parmesan_input_ids(section = NULL, config_path = "parmesan")
+input_ids_values <- lapply(input_ids, function(i){
+  NA
+})
+names(input_ids_values) <- input_ids
+
+
+server <-  function(input, output, session) {
   
-.shiny-output-error:before {
-  visibility: hidden; 
-}
-
-.style_section {
-  font-weight: 700;
-  margin-bottom: 7px;
-  letter-spacing: 1px;
-}
-
-.form-group label {
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 1px;
-}
-
-.buttonDown {
-  border: 1px solid;
-  margin-left: 5px;
-  display: inline-block;
-}
-
-.dn {
-  font-size: 23pt;
-  display: none !important;
-  color: blue;
-}
-
-"
-
-ui <- dsAppPanels(panel(title = "Datos",
-                        color = "chardonnay", 
-                        collapsed = FALSE, 
-                        width = "600px",
-                        body = div(tableInputUI("dataIn",
-                                                selected = "sampleData",
-                                                choices = list("Muestra" = "sampleData",
-                                                               "Copiar & Pegar" = "pasted",
-                                                               "Cargar" = "fileUpload",
-                                                               "GoogleSheet" = "googleSheet",
-                                                               "Mi librería" = "dsLibrary")),
-                                   selectizeInput("genderCol", "Columna nombres", choices = ""),
-                                   uiOutput("data_preview"))),
-                  panel(title = "Clasificación",
-                        color = "magenta", 
-                        collapsed = FALSE,
-                        body = withLoader(uiOutput("tableEnd"), type = "image", loader = "loading.svg")))
-
-
-random_name <- function(n = 10) {
-  paste0(sample(c(LETTERS, letters, 0:9), n, TRUE), collapse = "")
-}
-
-removeAccents <- function(string) {
-  string <- gsub("\\s+", " ", string)
-  accents <- "àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝäëïöüÄËÏÖÜâêîôûÂÊÎÔÛñÑç"
-  translation <- "aeiouAEIOUaeiouyAEIOUYaeiouAEIOUaeiouAEIOUnNc"
-  chartr(accents, translation, string)
-}
-
-gender_classified <- read_csv("data/names-gender-es.csv")
-
-server <- function(input, output, session) {
-  
-  # reactivo que almacena el plot
-  tablas <- reactiveValues(dt = NULL,
-                           cl = NULL)
-  
-  # reactivo que almacena lo que se importa
-  inputData <- callModule(tableInput, "dataIn",
-                          sampleFile = list("Nombres" = "data/sampleData/nombres.csv"))
-  
-  # opciones del selector dependiendo las columnas de la tabla importada
-  output$data_preview <- renderUI({
-    if (is.null(inputData())) return()
-    tablas$dt <- inputData()
-    updateSelectInput(session, "genderCol", choices = names(inputData()))
-    list(dsHot("dataTable", data = inputData()))
+  output$debug <- renderPrint({
+    str(result())
+    data_input()
   })
   
-  # tabla clasificada
-  # tabla_class <- eventReactive(input$classifyTable, {
-  # observeEvent(tablas$dt, {
+  react_env <- new.env()
+  
+  
+  vals <- reactiveValues()
+  vals$inputs <- input_ids_values
+  react_env <- new.env()
+  
   observe({
-    tb <- tablas$dt
-    if (sum(is.null(input$genderCol) | nzchar(input$genderCol)) == 0) return()
-    tb0 <- tb[, input$genderCol]
-    names(tb0) <- "z"
-    tb0$a <- toupper(removeAccents(tb0$z))
-    tb1 <- left_join(tb0, gender_classified, by = "a")
-    tb2 <- which(is.na(tb1$gender))
-    map(tb2, function(s) {
-      dt <- tb1[s, ]
-      s0 <- strsplit(dt$a, "\\s")[[1]]
-      s1 <- data.frame(a = s0, stringsAsFactors = FALSE) %>%
-        left_join(gender_classified, by = "a") %>%
-        group_by(gender) %>%
-        summarise(b = n())
-      if (nrow(s1) <= 1) {
-        dt$gender <- NA
-      } else {
-        if (s1$b[1] == s1$b[2]) {
-          dt$gender <- NA
-        } else {
-          mx <- which(max(s1$b) == s1$b)
-          dt$gender <- s1$gender[mx]
-        }
-      }
-      tb1[s, ] <<- dt
+    lapply(input_ids, function(i){
+      vals$inputs[[i]] <- input[[i]]
+      vals
     })
-    nm <- "z"
-    names(nm) <- input$genderCol
-    tb3 <- tb1[, c("z", "gender")]
-    tb4 <- left_join(tb, tb3, by = nm)
-    tablas$cl <- tb4
-  })
-  # renderizando tabla clasificada
-  output$tableEnd <- renderUI({
-    list(dsHot("dataTable", data = tablas$cl))
   })
   
+  data_input <- reactive({
+    req(input$hotr_input)
+    hotr_table(input$hotr_input)
+  }, env = react_env)
   
-  # # descargas
-  # output$downOptions <- renderUI({
-  #   htmltools::tagList(div(downloadButton("img_png", "png", class = "buttonDown"),
-  #                          downloadButton("img_jpeg", "jpeg", class = "buttonDown"),
-  #                          downloadButton("img_svg", "svg", class = "buttonDown"),
-  #                          downloadButton("img_pdf", "pdf", class = "buttonDown")))
-  # })
-  # 
-  # tempDir <- reactive({
-  #   last_ext <- input$last_btn
-  #   if (is.null(last_ext)) return()
-  #   dicTemp <- tempdir()
-  #   n <- sample(1:10, 1)
-  #   fileName <- random_name(n)
-  #   x <-  list("Dir" = dicTemp,
-  #              "viz_id" = fileName,
-  #              "ext" = paste0(".", gsub(".+_", "", last_ext)))
-  #   x
-  # })
-  # 
-  # observe({
-  #   map(c("img_png", "img_jpeg", "img_svg", "img_pdf"), function(z) {
-  #     output[[z]] <- downloadHandler(filename = function() {paste0(tempDir()$Dir, tempDir()$viz_id, tempDir()$ext)},
-  #                                    content = function(file) {ggmagic::save_ggmagic(plot_lego$plt, file, tempDir()$ext)})
-  #   })
-  # })
+  data_input_names <- reactive({
+    req(data_input())
+    names(data_input())
+  }, env = react_env)
+  
+  name_col <- reactive({
+    which_name_column(data_input_names())
+  }, env = react_env)
+  
+  
+  inputData <- callModule(tableInput, "initial_data",
+                          sampleFile = list(
+                            "Employees" = "data/sampleData/employees.csv",
+                            "Nombres" = "data/sampleData/nombres.csv",
+                            "Class"="data/sampleData/class.csv"
+                          ),
+                          infoList = list(
+                            "pasted" = ("Esto es información sobre el paste"),
+                            "fileUpload" = HTML("Esto es información sobre el fileUpload"),
+                            "sampleData" = HTML("Info sample Data"),
+                            "googleSheets" = HTML("IFO GGO")
+                          ))
+  
+  output$dataset <- renderUI({
+    if(is.null(inputData()))return()
+    order_var <- input$var_order
+    suppressWarnings(
+      hotr("hotr_input", data = inputData(), order = order_var, options = list(height = 470), enableCTypes = FALSE)
+    )
+  })
+  
+  output$controls <- renderUI({
+    parmesan_render_ui(input = input, env = react_env)
+  })
+  
+  result <- reactive({
+    req(data_input(), input$male, input$female)
+    result_as <- c(male = input$male, female = input$female)
+    safe_genero <- safely(genero)
+    res <- safe_genero(data_input(), col = input$name_column, result_as = result_as, lang = input$gender_lang)
+    res
+  })
+  
+  output$result <- renderUI({
+    res <- result()
+    warn <- NULL
+    if(is.null(res$result)){
+      warn <- infomessage(p(res$error$message))
+    }
+    
+    list(
+      warn,
+      # dataTableOutput("result_table"),
+      hotr("hotr_result", data = res$result, options = list(height = 470), enableCTypes = FALSE)
+      
+    )
+  })
+  
+  output$result_table <- renderDataTable({
+    # Guess Gender
+    result()$result
+    #cars
+  })
+  
   
 }
+
+
 shinyApp(ui, server)

@@ -5,6 +5,7 @@ library(hotr)
 library(dsmodules)
 library(tidyverse)
 library(genero)
+library(homodatum)
 
 ui <- panelsPage(
   panel(
@@ -31,7 +32,7 @@ ui <- panelsPage(
   ),
   panel(
     title = "Options",
-    width = 200,
+    width = 250,
     collapse = FALSE,
     body = div(
       uiOutput("controls")
@@ -42,7 +43,7 @@ ui <- panelsPage(
     body = div(
       # infomessage(p("Hello")),
       uiOutput("result"),
-      verbatimTextOutput("debug"),
+      # verbatimTextOutput("debug"),
       shinypanels::modal(id = 'test', title = 'Download plot',
                          dsmodules::downloadFileUI("download_data_button")
       ),

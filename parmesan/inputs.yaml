@@ -28,5 +28,7 @@ gender_lang:
     input_params:
       label: ""
       choices: 
+        Español:
         - es
+        Portugués:
         - pt

@@ -7,7 +7,6 @@ library(dsmodules)
 library(tidyverse)
 library(genero)
 
-# falta lo de reactiveness de hotr e inputs...  
 
 ui <- panelsPage(panel(title = "Upload Data", 
                        width = 350,
@@ -29,14 +28,8 @@ ui <- panelsPage(panel(title = "Upload Data",
                                   uiOutput("result"),
                                   # verbatimTextOutput("debug"),
                                   shinypanels::modal(id = "test", title = "Download plot",
-                                                     downloadTableUI("download_data_button", "Descarga", formats = c("csv", "xlsx", "json"))),
-                                  shinypanels::modalButton(label = "Download Data", modal_id = "test"))))
-
-
-# Reactive part
-# input_ids <- parmesan_input_ids(section = NULL, config_path = "parmesan")
-# input_ids_values <- lapply(input_ids, function(i) {NA})
-# names(input_ids_values) <- input_ids
+                                                     downloadTableUI("download_data_button", "Descarga", formats = c("csv", "xlsx", "json")))),
+                       footer = shinypanels::modalButton(label = "Download Data", modal_id = "test")))
 
 
 server <-  function(input, output, session) {
@@ -44,9 +37,7 @@ server <-  function(input, output, session) {
   path <- "parmesan"
   parmesan <- parmesan_load(path)
   parmesan_env <- new.env()
-  
   parmesan_input <- parmesan_watch(input, parmesan)
-  
   output_parmesan("#controls", 
                   parmesan = parmesan,
                   input = input,
@@ -68,10 +59,6 @@ server <-  function(input, output, session) {
                           #                 "sampleData" = HTML("Info sample Data"),
                           #                 "googleSheets" = HTML("IFO GGO"))
                           )
-  
-  # output$controls <- renderUI({
-  #   parmesan_render_ui(input = input, env = react_env)
-  # })
   
   output$dataset <- renderUI({
     if (is.null(inputData())) 

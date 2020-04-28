@@ -33,31 +33,29 @@ ui <- panelsPage(panel(title = "Upload Data",
                                   shinypanels::modalButton(label = "Download Data", modal_id = "test"))))
 
 
-config_path <- "parmesan"
 # Reactive part
-input_ids <- parmesan_input_ids(section = NULL, config_path = "parmesan")
-input_ids_values <- lapply(input_ids, function(i) {NA})
-names(input_ids_values) <- input_ids
+# input_ids <- parmesan_input_ids(section = NULL, config_path = "parmesan")
+# input_ids_values <- lapply(input_ids, function(i) {NA})
+# names(input_ids_values) <- input_ids
 
 
 server <-  function(input, output, session) {
   
+  path <- "parmesan"
+  parmesan <- parmesan_load(path)
+  parmesan_env <- new.env()
+  
+  parmesan_input <- parmesan_watch(input, parmesan)
+  
+  output_parmesan("#controls", 
+                  parmesan = parmesan,
+                  input = input,
+                  output = output,
+                  env = parmesan_env)
+  
   # output$debug <- renderPrint({
   #   str(result())
   #   data_input()
-  # })
-  
-  react_env <- new.env()
-  
-  vals <- reactiveValues()
-  vals$inputs <- input_ids_values
-  react_env <- new.env()
-  
-  # observe({
-  #   lapply(input_ids, function(i){
-  #     vals$inputs[[i]] <- input[[i]]
-  #     vals
-  #   })
   # })
   
   inputData <- callModule(tableInput, 
@@ -71,9 +69,9 @@ server <-  function(input, output, session) {
                           #                 "googleSheets" = HTML("IFO GGO"))
                           )
   
-  output$controls <- renderUI({
-    parmesan_render_ui(input = input, env = react_env)
-  })
+  # output$controls <- renderUI({
+  #   parmesan_render_ui(input = input, env = react_env)
+  # })
   
   output$dataset <- renderUI({
     if (is.null(inputData())) 
@@ -86,16 +84,16 @@ server <-  function(input, output, session) {
   data_input <- reactive({
     req(input$hotr_input)
     hotr_table(input$hotr_input)
-  }, env = react_env)
+  })
   
   data_input_names <- reactive({
     req(data_input())
     names(data_input())
-  }, env = react_env)
+  })
   
   name_col <- reactive({
     which_name_column(data_input_names())
-  }, env = react_env)
+  })
   
   result <- reactive({
     req(data_input(), input$male, input$female)

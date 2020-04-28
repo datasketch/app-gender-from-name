@@ -5,6 +5,7 @@ name_column:
     label: Gender column
     choices: reactive__data_input_names
     selected: reactive__name_col
+  update_param: selected
 male:
   show: true
   input_type: textInput

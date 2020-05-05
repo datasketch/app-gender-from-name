@@ -3,8 +3,8 @@ name_column:
   input_type: selectInput
   input_params:
     label: Gender column
-    choices: reactive__data_input_names
-    selected: reactive__name_col
+    choices: data_input_names()
+    selected: name_col()
   update_param: selected
 male:
   show: true

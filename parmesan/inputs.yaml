@@ -10,13 +10,13 @@ male:
   show: true
   input_type: textInput
   input_params:
-    label: "Male"
+    label: male
     value: M
 female:
   show: true
   input_type: textInput
   input_params:
-    label: "Female"
+    label: female
     value: F
 gender_lang:
   show: true

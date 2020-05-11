@@ -1,19 +1,16 @@
 library(shinypanels)
 library(parmesan)
 library(shinyinvoer)
+library(shi18ny)
 library(hotr)
 library(homodatum)
 library(dsmodules)
 library(tidyverse)
 library(genero)
 
-# Internacionalización
-# Arreglar código
-# Issue en hotr de la distinción de columnas de la tabla 
 
-
-
-ui <- panelsPage(panel(title = "Upload Data", 
+ui <- panelsPage(useShi18ny(),
+                 panel(title = ui_("upload_data"), 
                        width = 200,
                        body = tableInputUI("initial_data",
                                            choices = list("Sample data" = "sampleData",
@@ -21,33 +18,52 @@ ui <- panelsPage(panel(title = "Upload Data",
                                                           "CSV/XLS Upload" = "fileUpload",
                                                           "Google sheets" = "googleSheets"),
                                            selected = "sampleData")),
-                 panel(title = "Dataset",
+                 panel(title = ui_("dataset"), 
                        width = 300,
                        body = uiOutput("dataset")),
-                 panel(title = "Options",
+                 panel(title = ui_("options"), 
                        width = 250,
+                       color = "chardonnay",
                        body = uiOutput("controls")),
-                 panel(title = "Viz",
+                 panel(title = "viz",
+                       color = "chardonnay",
                        can_collapse = FALSE,
                        body = div(#infomessage(p("Hello")),
+                         langSelectorInput("lang", position = "fixed"),
                          uiOutput("result", height = "80vh"),
                          # verbatimTextOutput("debug"),
                          shinypanels::modal(id = "test", 
-                                            title = "Download table",
+                                            title = ui_("Download table"),
                                             downloadTableUI("download_data_button", "Download", formats = c("csv", "xlsx", "json")))),
                        footer = shinypanels::modalButton(label = "Download table", modal_id = "test")))
 
 
 server <-  function(input, output, session) {
   
+  i18n <- list(defaultLang = "en", availableLangs = c("es", "en", "pt"))
+  lang <- callModule(langSelector, "lang", i18n = i18n, showSelector = TRUE)
+  observeEvent(lang(), {
+    uiLangUpdate(input$shi18ny_ui_classes, lang())
+  })  
+  
   path <- "parmesan"
   parmesan <- parmesan_load(path)
   parmesan_input <- parmesan_watch(input, parmesan)
   parmesan_alert(parmesan, env = environment())
-  output_parmesan("controls", 
-                  parmesan = parmesan,
-                  input = input,
-                  output = output)
+  # observe({
+  # output_parmesan("controls", 
+  #                 parmesan = i_(parmesan, lang()),
+  #                 input = input,
+  #                 output = output)
+  # })
+  
+  output$controls <- renderUI({
+    tagList(
+    render_section(section = "columns", parmesan = i_(parmesan, lang())),
+    render_section(section = "results", parmesan = i_(parmesan, lang())),
+    render_section(section = "language", parmesan = i_(parmesan, lang()))
+    )
+  })
   
   # output$debug <- renderPrint({
   #   str(result())

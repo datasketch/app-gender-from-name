@@ -1,13 +1,13 @@
 columns:
-  label: Select column
+  label: columns
   inputs:
     - name_column
 results:
-  label: Results as
+  label: results
   inputs:
     - female
     - male
 language:
-  label: Gender language
+  label: language
   inputs:
     - gender_lang

@@ -1,7 +1,23 @@
 upload_data: Subir datos
+dataset: Datos
+options: Opciones
+viz: Vizualización
+sample: Datos de muestra
+sample_lb: Selecciona unos datos de muestra
+paste: Copiar & pegar
+paste_pl: Copia y pega aquí
+upload: Subir CSX/XLS
+upload_lb: Escoje archivo CSV/XLS
+upload_bt_lb: Examinar...
+upload_pl: Ningún archivo seleccionado
+google: Google sheets
+google_sh_lb: Datos desde Google Sheet
+google_sh_pl: https://docs.google.com/spreadsheets/...
+google_sh_pg_lb: Hoja
 columns: Seleccionar columnas
 results: Resultado como
 language: Idioma de los nombres
 name_column: Columna sexo
 female: Mujer
 male: Hombre
+download_table: Descargar tabla

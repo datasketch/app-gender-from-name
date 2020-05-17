@@ -2,7 +2,7 @@ name_column:
   show: true
   input_type: selectInput
   input_params:
-    label: Gender column
+    label: name_column
     choices: data_input_names()
     selected: name_col()
   update_param: selected
@@ -26,5 +26,7 @@ gender_lang:
     choices: 
       Español:
       - es
+      Inglés:
+      - en
       Portugués:
       - pt

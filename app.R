@@ -11,9 +11,9 @@ library(genero)
 
 
 t0UI <- function(id,
-                         choices = c("pasted", "fileUpload", "sampleData", "googleSheets"),
-                         choicesInline = FALSE,
-                         selected = "pasted", ...) {
+                 choices = c("pasted", "fileUpload", "sampleData", "googleSheets"),
+                 choicesInline = FALSE,
+                 selected = "pasted", ...) {
   
   # lapply(formalArgs(tableInputUI), function(d) {
   lapply(formalArgs(t0UI), function(d) {
@@ -40,13 +40,13 @@ t0UI <- function(id,
 
 #' @export
 t0 <- function(input, output, session,
-                       infoList = NULL,
-                       pasteLabel = "Paste", pasteValue = "", pastePlaceholder = "Select your data and paste it here", pasteRows = 5,
-                       uploadLabel = "Choose CSV File", uploadButtonLabel = "Browse...", uploadPlaceholder = "No file selected",
-                       sampleLabel = "Select a sample data", sampleFiles = NULL, sampleSelected = NULL,
-                       googleSheetLabel = "Data from Google Sheet", googleSheetValue = "", googleSheetPlaceholder = "https://docs.google.com/spreadsheets/...",
-                       googleSheetPageLabel = "Sheet",
-                       ...) {
+               infoList = NULL,
+               pasteLabel = "Paste", pasteValue = "", pastePlaceholder = "Select your data and paste it here", pasteRows = 5,
+               uploadLabel = "Choose CSV File", uploadButtonLabel = "Browse...", uploadPlaceholder = "No file selected",
+               sampleLabel = "Select a sample data", sampleFiles = NULL, sampleSelected = NULL,
+               googleSheetLabel = "Data from Google Sheet", googleSheetValue = "", googleSheetPlaceholder = "https://docs.google.com/spreadsheets/...",
+               googleSheetPageLabel = "Sheet",
+               ...) {
   
   # lapply(formalArgs(t0), function(d) {
   #   if (shiny::is.reactive(d))
@@ -158,8 +158,8 @@ ui <- panelsPage(useShi18ny(),
                                             title = ui_("download_table"),
                                             # downloadTableUI("download_data_button", "Download", formats = c("csv", "xlsx", "json")))),
                                             uiOutput("modal"))),
-                         # footer = uiOutput("modal_button")))
-                         footer = shinypanels::modalButton(label = "Download table", modal_id = "test")))
+                       # footer = uiOutput("modal_button")))
+                       footer = shinypanels::modalButton(label = "Download table", modal_id = "test")))
 
 # shinypanels::modal(id = "test",
 #                                             title = ui_("download_table"),
@@ -226,47 +226,47 @@ server <-  function(input, output, session) {
          #                 "fileUpload" = HTML("Esto es información sobre el fileUpload"),
          #                 "sampleData" = HTML("Info sample Data"),
          #                 "googleSheets" = HTML("IFO GGO"))
-         )
+    )
   })
-    
+  
   # observe({
   # observeEvent(i(), {
-    # inputData <- eventReactive(labels(), {
-     observe({
-       inputData <-do.call(callModule, c(tableInput,
-      # do.call(callModule, c(t0,
-      "initial_data",
-      labels()))
-      #                       # sampleLabel = reactive(i_("sample_lb", lang()))#, 
-      #                       sampleLabel = i_("sample_lb", reactive(lang()))#, 
-                            # sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
-                            #                    "Employees" = "data/sampleData/employees.csv"),
-                            # pasteLabel = i_("paste", lang()), pasteValue = "", pastePlaceholder = i_("paste_pl", lang()), pasteRows = 5, 
-      # ))
-      
-      
-  # inputData <- callModule(t0,
-  #                         "initial_data",
-  #                         sampleLabel = i_("sample_lb", reactive(lang()))) 
-  #                         # Select a sample data(
-  #                         i(),
-  #                         # sampleLabel = i(), 
-  #                         # sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
-  #                         #                    "Employees" = "data/sampleData/employees.csv"),
-  #                         # pasteLabel = i_("paste", lang()), 
-  #                         pasteLabel = "DSFHGS<", 
-  #                         pasteValue = "", pastePlaceholder = "Selectand paste it here", 
-  #                         pasteRows = 5, uploadLabel = "Choose CSV File", uploadButtonLabel = "Browse...", 
-  #                         uploadPlaceholder = "No file selected", 
-  #                         googleSheetLabel = "Data from Google Sheet", 
-  #                         googleSheetValue = "", googleSheetPlaceholder = "https://docs.google.com/spreadsheets/...", 
-  #                         googleSheetPageLabel = "Sheet"
-  #                         
-  #                         # infoList = list("pasted" = ("Esto es información sobre el paste"),
-  #                         #                 "fileUpload" = HTML("Esto es información sobre el fileUpload"),
-  #                         #                 "sampleData" = HTML("Info sample Data"),
-  #                         #                 "googleSheets" = HTML("IFO GGO"))
-  # )
+  inputData <- eventReactive(labels(), {
+    # observe({
+    do.call(callModule, c(tableInput,
+                          # do.call(callModule, c(t0,
+                          "initial_data",
+                          labels()))
+                          # sampleLabel = reactive(i_("sample_lb", lang))))
+    #                       sampleLabel = i_("sample_lb", reactive(lang()))#, 
+    # sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
+    #                    "Employees" = "data/sampleData/employees.csv"),
+    # pasteLabel = i_("paste", lang()), pasteValue = "", pastePlaceholder = i_("paste_pl", lang()), pasteRows = 5, 
+    # ))
+    
+    
+    # inputData <- callModule(t0,
+    #                         "initial_data",
+    #                         sampleLabel = i_("sample_lb", reactive(lang()))) 
+    #                         # Select a sample data(
+    #                         i(),
+    #                         # sampleLabel = i(), 
+    #                         # sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
+    #                         #                    "Employees" = "data/sampleData/employees.csv"),
+    #                         # pasteLabel = i_("paste", lang()), 
+    #                         pasteLabel = "DSFHGS<", 
+    #                         pasteValue = "", pastePlaceholder = "Selectand paste it here", 
+    #                         pasteRows = 5, uploadLabel = "Choose CSV File", uploadButtonLabel = "Browse...", 
+    #                         uploadPlaceholder = "No file selected", 
+    #                         googleSheetLabel = "Data from Google Sheet", 
+    #                         googleSheetValue = "", googleSheetPlaceholder = "https://docs.google.com/spreadsheets/...", 
+    #                         googleSheetPageLabel = "Sheet"
+    #                         
+    #                         # infoList = list("pasted" = ("Esto es información sobre el paste"),
+    #                         #                 "fileUpload" = HTML("Esto es información sobre el fileUpload"),
+    #                         #                 "sampleData" = HTML("Info sample Data"),
+    #                         #                 "googleSheets" = HTML("IFO GGO"))
+    # )
   })
   
   output$dataset <- renderUI({

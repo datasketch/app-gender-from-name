@@ -5,6 +5,10 @@ name_column:
     label: name_column
     choices: data_input_names()
     selected: name_col()
+  input_info:
+    icon: info-circle
+    #icon-align: right
+    text: info_nm
   update_param: selected
 male:
   show: true
@@ -22,7 +26,7 @@ gender_lang:
   show: true
   input_type: selectInput
   input_params:
-    label: ""
+    label: language
     choices: 
       Español:
       - es

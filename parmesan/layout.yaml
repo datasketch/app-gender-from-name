@@ -2,12 +2,9 @@ columns:
   label: columns
   inputs:
     - name_column
+    - gender_lang
 results:
   label: results
   inputs:
     - female
     - male
-language:
-  label: language
-  inputs:
-    - gender_lang

@@ -2,6 +2,7 @@ library(shinypanels)
 library(parmesan)
 library(shinyinvoer)
 library(shi18ny)
+library(V8)
 library(dsmodules)
 library(hotr)
 library(homodatum)
@@ -10,136 +11,10 @@ library(genero)
 
 
 
-t0UI <- function(id,
-                 choices = c("pasted", "fileUpload", "sampleData", "googleSheets"),
-                 choicesInline = FALSE,
-                 selected = "pasted", ...) {
-  
-  # lapply(formalArgs(tableInputUI), function(d) {
-  lapply(formalArgs(t0UI), function(d) {
-    if (shiny::is.reactive(d))
-      d <<- do.call(d, args = list())
-    d
-  })
-  
-  # UI
-  ns <- shiny::NS(id)
-  #choiceNames <-  choiceNames %||% choices
-  #names(choices) <- choiceNames
-  
-  #info_style <- ifelse(is.null(uiOutput(ns("tableInputInfo"))), "display:flex;", "display:none;")
-  
-  shiny::tagList(shiny::div(id = ns("tableInput"),class="tableInput",
-                            shiny::radioButtons(ns("tableInput"), "",
-                                                choices = choices, selected = selected, inline = choicesInline),
-                            shiny::uiOutput(ns("tableInputControls"))),
-                 shiny::div(class = "box-tableInputInfo", #style = info_style,
-                            shiny::uiOutput(ns("tableInputInfo"))))
-  
-}
-
-#' @export
-t0 <- function(input, output, session,
-               infoList = NULL,
-               pasteLabel = "Paste", pasteValue = "", pastePlaceholder = "Select your data and paste it here", pasteRows = 5,
-               uploadLabel = "Choose CSV File", uploadButtonLabel = "Browse...", uploadPlaceholder = "No file selected",
-               sampleLabel = "Select a sample data", sampleFiles = NULL, sampleSelected = NULL,
-               googleSheetLabel = "Data from Google Sheet", googleSheetValue = "", googleSheetPlaceholder = "https://docs.google.com/spreadsheets/...",
-               googleSheetPageLabel = "Sheet",
-               ...) {
-  
-  # lapply(formalArgs(t0), function(d) {
-  #   if (shiny::is.reactive(d))
-  #     d <<- do.call(d, args = list())
-  #   d
-  # })
-  # if (shiny::is.reactive(pasteLabel))
-  #   pasteLabel <- pasteLabel
-  
-  output$tableInputControls <- shiny::renderUI({
-    
-    # str(session)
-    # if(!exists(session))
-    #   stop("No session defined in server.")
-    
-    ns <- session$ns
-    
-    if (shiny::is.reactive(sampleFiles))
-      sampleFiles <- sampleFiles()
-    
-    if(input$tableInput == "sampleData"){
-      if(!all(map_lgl(sampleFiles,file.exists)))
-        stop("All Sample Files must exist")
-    }
-    
-    tableInputControls <- list(pasted = textAreaInput(ns("inputDataPasted"), label = pasteLabel, value = pasteValue, placeholder = pastePlaceholder, rows = pasteRows),
-                               fileUpload =  fileInput(ns("inputDataUpload"), uploadLabel, buttonLabel = uploadButtonLabel, placeholder = uploadPlaceholder,
-                                                       accept = c("text/csv", "text/comma-separated-values, text/plain", ".csv", ".xls", ".xlsx")),
-                               sampleData = selectInput(ns("inputDataSample"), sampleLabel, choices = sampleFiles, selected = sampleSelected),
-                               googleSheets = list(shiny::textInput(ns("inputDataSheet"), label = googleSheetLabel, value = googleSheetValue, placeholder = googleSheetPlaceholder),
-                                                   shiny::numericInput(ns("inputDataGoogleSheetSheet"), googleSheetPageLabel, 1))
-    )
-    tableInputControls[[input$tableInput]]
-  })
-  
-  output$tableInputInfo <- shiny::renderUI({
-    ns <- session$ns
-    tableInputInfo <- infoList[[input$tableInput]]
-    if (is.null(tableInputInfo)) return()
-    tableInputInfo
-  })
-  
-  inputData <- shiny::reactive({
-    inputType <- input$tableInput
-    #readDataFromInputType(inputType)
-    if(inputType == "pasted"){
-      if (is.null(input$inputDataPasted)) return()
-      if(input$inputDataPasted == "")
-        return()
-      df <- read_tsv(input$inputDataPasted)
-    }
-    if(inputType ==  "fileUpload"){
-      if(is.null(input$inputDataUpload)) return()
-      old_path <- input$inputDataUpload$datapath
-      path <- file.path(tempdir(),input$inputDataUpload$name)
-      file.copy(old_path,path)
-      df <- rio::import(path)
-    }
-    if(inputType ==  "sampleData"){
-      if (is.null(input$inputDataSample)) return()
-      file <- as.character(input$inputDataSample)
-      df <- readr::read_csv(file)
-    }
-    if (inputType == "googleSheets") {
-      if (is.null(input$inputDataSheet)) return()
-      if (input$inputDataSheet == "") return()
-      library(googlesheets4)
-      googlesheets4::sheets_deauth()
-      id_file <- gsub(".*\\/d\\/|\\/edit.*", '', input$inputDataSheet)
-      googlesheets4::sheets_get(id_file)
-      df <- googlesheets4::read_sheet(id_file)
-    }
-    return(df)
-  })
-  
-  inputData
-}
-
-
-
-# falta que se traduzcan los choices del selector de idiomas
-
-
 ui <- panelsPage(useShi18ny(),
                  panel(title = ui_("upload_data"), 
                        width = 200,
                        body = uiOutput("table_input")),
-                 # body = tableInputUI("initial_data",
-                 #                     choices = list("Sample data" = "sampleData",
-                 #                                    "Copy & paste" = "pasted",
-                 #                                    "CSV/XLS Upload" = "fileUpload",
-                 #                                    "Google sheets" = "googleSheets"),
-                 #                     selected = "sampleData")),
                  panel(title = ui_("dataset"), 
                        width = 300,
                        body = uiOutput("dataset")),
@@ -154,17 +29,13 @@ ui <- panelsPage(useShi18ny(),
                          langSelectorInput("lang", position = "fixed"),
                          uiOutput("result", height = "80vh"),
                          # verbatimTextOutput("debug"),
-                         shinypanels::modal(id = "test",
+                         shinypanels::modal(id = "download",
                                             title = ui_("download_table"),
                                             # downloadTableUI("download_data_button", "Download", formats = c("csv", "xlsx", "json")))),
                                             uiOutput("modal"))),
                        # footer = uiOutput("modal_button")))
-                       footer = shinypanels::modalButton(label = "Download table", modal_id = "test")))
+                       footer = shinypanels::modalButton(label = "Download table", modal_id = "download")))
 
-# shinypanels::modal(id = "test",
-#                                             title = ui_("download_table"),
-#                                             downloadTableUI("download_data_button", "Download", formats = c("csv", "xlsx", "json")))),
-#                        footer = shinypanels::modalButton(label = "Download table", modal_id = "test")))
 
 
 server <-  function(input, output, session) {
@@ -179,18 +50,16 @@ server <-  function(input, output, session) {
     choices <- c("sampleData", "pasted", "fileUpload", "googleSheets")
     names(choices) <- i_(c("sample", "paste", "upload", "google"), lang = lang())
     tableInputUI("initial_data",
-                 # t0UI("initial_data",
                  choices = choices,
                  # selected is important for inputs not be re-initialized
                  selected = ifelse(is.null(input$`initial_data-tableInput`), "sampleData", input$`initial_data-tableInput`))
-    
   })
   
   path <- "parmesan"
   parmesan <- parmesan_load(path)
   parmesan_input <- parmesan_watch(input, parmesan)
   parmesan_alert(parmesan, env = environment())
-  parmesan_lang <- reactive({i_(parmesan, lang(), keys = c("label", "choices"))})
+  parmesan_lang <- reactive({i_(parmesan, lang(), keys = c("label", "choices", "text"))})
   output_parmesan("controls",
                   parmesan = parmesan_lang,
                   input = input,
@@ -228,22 +97,13 @@ server <-  function(input, output, session) {
          #                 "googleSheets" = HTML("IFO GGO"))
     )
   })
+
   
-  # observe({
-  # observeEvent(i(), {
   inputData <- eventReactive(labels(), {
-    # observe({
     do.call(callModule, c(tableInput,
-                          # do.call(callModule, c(t0,
                           "initial_data",
                           labels()))
-                          # sampleLabel = reactive(i_("sample_lb", lang))))
-    #                       sampleLabel = i_("sample_lb", reactive(lang()))#, 
-    # sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
-    #                    "Employees" = "data/sampleData/employees.csv"),
-    # pasteLabel = i_("paste", lang()), pasteValue = "", pastePlaceholder = i_("paste_pl", lang()), pasteRows = 5, 
-    # ))
-    
+  })
     
     # inputData <- callModule(t0,
     #                         "initial_data",
@@ -267,6 +127,12 @@ server <-  function(input, output, session) {
     #                         #                 "sampleData" = HTML("Info sample Data"),
     #                         #                 "googleSheets" = HTML("IFO GGO"))
     # )
+  # })
+
+  observeEvent(lang(), {
+    ch <- c("es", "en", "pt")
+    names(ch) <- i_(c("es", "en", "pt"), lang())
+    updateSelectInput(session, "gender_lang", choices = ch, selected = input$gender_lang)
   })
   
   output$dataset <- renderUI({
@@ -314,10 +180,12 @@ server <-  function(input, output, session) {
          hotr("hotr_result", data = res$result, options = list(height = 470), enableCTypes = FALSE))
   })
   
+  observe(print(input$gender_lang))
   # descargas
   callModule(downloadTable, "download_data_button", table = reactive(result()$result), formats = c("csv", "xlsx", "json"))
   
 }
+
 
 
 shinyApp(ui, server)

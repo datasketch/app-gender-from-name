@@ -6,7 +6,7 @@ sample: Sample data
 sample_lb: Select a sample data
 paste: Copy & paste
 paste_pl: Copy and paste it here
-upload: CSX/XLS upload  
+upload: CSV/XLS upload  
 upload_lb: Choose CSV/XLS file
 upload_bt_lb: Browse...
 upload_pl: No file selected
@@ -14,10 +14,14 @@ google: Google sheets
 google_sh_lb: Data from Google Sheet
 google_sh_pl: https://docs.google.com/spreadsheets/...
 google_sh_pg_lb: Sheet
-columns: Select column
+columns: Names' column
 results: Results as
 language: Names' language
 name_column: Gender column
 female: Female
 male: Male
 download_table: Download table
+es: Espanish
+en: English
+pt: Portuguese
+info_nm: The name of the column that holds the names for the gender classification

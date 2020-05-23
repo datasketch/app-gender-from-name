@@ -128,10 +128,11 @@ server <-  function(input, output, session) {
     #                         #                 "googleSheets" = HTML("IFO GGO"))
     # )
   # })
-
+  
+  # updating names choices of inputs depending on language
   observeEvent(lang(), {
-    ch <- c("es", "en", "pt")
-    names(ch) <- i_(c("es", "en", "pt"), lang())
+    ch <- as.character(parmesan$columns$inputs[[2]]$input_params$choices)
+    names(ch) <- i_(ch, lang())
     updateSelectInput(session, "gender_lang", choices = ch, selected = input$gender_lang)
   })
   

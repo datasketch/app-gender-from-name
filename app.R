@@ -40,11 +40,9 @@ ui <- panelsPage(useShi18ny(),
 
 server <-  function(input, output, session) {
   
-  i18n <- list(defaultLang = "en", availableLangs = c("es", "en", "pt"))
-  lang <- callModule(langSelector, "lang", i18n = i18n, showSelector = TRUE)
-  observeEvent(lang(), {
-    uiLangUpdate(input$shi18ny_ui_classes, lang())
-  })
+  i18n <- list(defaultLang = "en", availableLangs = c("es", "en", "pt_BR"))
+  lang <- callModule(langSelector, "lang", i18n = i18n, showSelector = FALSE)
+  observeEvent(lang(), {uiLangUpdate(input$shi18ny_ui_classes, lang())})
   
   output$table_input <- renderUI({
     choices <- c("sampleData", "pasted", "fileUpload", "googleSheets")
@@ -53,6 +51,52 @@ server <-  function(input, output, session) {
                  choices = choices,
                  # selected is important for inputs not be re-initialized
                  selected = ifelse(is.null(input$`initial_data-tableInput`), "sampleData", input$`initial_data-tableInput`))
+  })
+  
+  # lista labels módulos en idioma seleccionado
+  labels <- reactive({
+    
+    sm_f <- paste0("data/sampleData/", i_(c("sample_ch_0", "sample_ch_1"), lang()))
+    names(sm_f) <- i_(c("sample_ch_nm_0", "sample_ch_nm_1"), lang())
+    
+    list(sampleLabel = i_("sample_lb", lang()), 
+         # sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
+         #                    "Employees" = "data/sampleData/employees.csv"),
+         sampleFiles = sm_f,
+         
+         pasteLabel = i_("paste", lang()), 
+         pasteValue = "", 
+         pastePlaceholder = i_("paste_pl", lang()), 
+         pasteRows = 5,
+         
+         uploadLabel = i_("upload_lb", lang()),
+         uploadButtonLabel = i_("upload_bt_lb", lang()), 
+         uploadPlaceholder = i_("upload_pl", lang()),
+         
+         googleSheetLabel = i_("google_sh_lb", lang()),
+         googleSheetValue = "",
+         googleSheetPlaceholder = i_("google_sh_pl", lang()),
+         googleSheetPageLabel = i_("google_sh_pg_lb", lang())
+         
+         # infoList = list("pasted" = ("Esto es información sobre el paste"),
+         #                 "fileUpload" = HTML("Esto es información sobre el fileUpload"),
+         #                 "sampleData" = HTML("Info sample Data"),
+         #                 "googleSheets" = HTML("IFO GGO"))
+    )
+  })
+  
+  inputData <- eventReactive(labels(), {
+    do.call(callModule, c(tableInput,
+                          "initial_data",
+                          labels()))
+  })
+  
+  output$dataset <- renderUI({
+    if (is.null(inputData())) 
+      return()
+    # order_var <- input$var_order
+    # suppressWarnings(hotr("hotr_input", data = inputData(), order = order_var, options = list(height = 470), enableCTypes = FALSE))
+    suppressWarnings(hotr("hotr_input", data = inputData(), order = NULL, options = list(height = 470), enableCTypes = FALSE))
   })
   
   path <- "parmesan"
@@ -66,83 +110,20 @@ server <-  function(input, output, session) {
                   output = output,
                   env = environment())
   
-  # output$debug <- renderPrint({
-  #   str(result())
-  #   data_input()
-  # })
-  
-  
-  output$modal <- renderUI({
-    dw <- i_("download", lang())
-    downloadTableUI("download_data_button", dw, formats = c("csv", "xlsx", "json"))
-  })
-  
-  # output$modal_button <- renderUI({
-  #   shinypanels::modalButton(label = "Download table", modal_id = "test")
-  # })
-  
-  # lista labels módulos en idioma seleccionado
-  labels <- reactive({
-    list(sampleLabel = i_("sample_lb", lang()), 
-         sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
-                            "Employees" = "data/sampleData/employees.csv"),
-         pasteLabel = i_("paste", lang()), pasteValue = "", pastePlaceholder = i_("paste_pl", lang()), pasteRows = 5, 
-         uploadLabel = i_("upload_lb", lang()), uploadButtonLabel = i_("upload_bt_lb", lang()), uploadPlaceholder = i_("upload_pl", lang()),
-         googleSheetLabel = i_("google_sh_lb", lang()), googleSheetValue = "", googleSheetPlaceholder = i_("google_sh_pl", lang()),
-         googleSheetPageLabel = i_("google_sh_pg_lb", lang())
-         
-         # infoList = list("pasted" = ("Esto es información sobre el paste"),
-         #                 "fileUpload" = HTML("Esto es información sobre el fileUpload"),
-         #                 "sampleData" = HTML("Info sample Data"),
-         #                 "googleSheets" = HTML("IFO GGO"))
-    )
-  })
-
-  
-  inputData <- eventReactive(labels(), {
-    do.call(callModule, c(tableInput,
-                          "initial_data",
-                          labels()))
-  })
-    
-    # inputData <- callModule(t0,
-    #                         "initial_data",
-    #                         sampleLabel = i_("sample_lb", reactive(lang()))) 
-    #                         # Select a sample data(
-    #                         i(),
-    #                         # sampleLabel = i(), 
-    #                         # sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
-    #                         #                    "Employees" = "data/sampleData/employees.csv"),
-    #                         # pasteLabel = i_("paste", lang()), 
-    #                         pasteLabel = "DSFHGS<", 
-    #                         pasteValue = "", pastePlaceholder = "Selectand paste it here", 
-    #                         pasteRows = 5, uploadLabel = "Choose CSV File", uploadButtonLabel = "Browse...", 
-    #                         uploadPlaceholder = "No file selected", 
-    #                         googleSheetLabel = "Data from Google Sheet", 
-    #                         googleSheetValue = "", googleSheetPlaceholder = "https://docs.google.com/spreadsheets/...", 
-    #                         googleSheetPageLabel = "Sheet"
-    #                         
-    #                         # infoList = list("pasted" = ("Esto es información sobre el paste"),
-    #                         #                 "fileUpload" = HTML("Esto es información sobre el fileUpload"),
-    #                         #                 "sampleData" = HTML("Info sample Data"),
-    #                         #                 "googleSheets" = HTML("IFO GGO"))
-    # )
-  # })
-  
   # updating names choices of inputs depending on language
   observeEvent(lang(), {
     ch <- as.character(parmesan$columns$inputs[[2]]$input_params$choices)
     names(ch) <- i_(ch, lang())
+    
+    updateTextInput(session, "female", value = i_("F", lang()))
+    updateTextInput(session, "male", value = i_("M", lang()))
     updateSelectInput(session, "gender_lang", choices = ch, selected = input$gender_lang)
   })
   
-  output$dataset <- renderUI({
-    if (is.null(inputData())) 
-      return()
-    # order_var <- input$var_order
-    # suppressWarnings(hotr("hotr_input", data = inputData(), order = order_var, options = list(height = 470), enableCTypes = FALSE))
-    suppressWarnings(hotr("hotr_input", data = inputData(), order = NULL, options = list(height = 470), enableCTypes = FALSE))
-  })
+  # output$debug <- renderPrint({
+  #   str(result())
+  #   data_input()
+  # })
   
   data_input <- reactive({
     req(input$hotr_input)
@@ -181,7 +162,17 @@ server <-  function(input, output, session) {
          hotr("hotr_result", data = res$result, options = list(height = 470), enableCTypes = FALSE))
   })
   
-  observe(print(input$gender_lang))
+  # output$modal_button <- renderUI({
+  #   shinypanels::modalButton(label = "Download table", modal_id = "test")
+  # })
+
+  
+  output$modal <- renderUI({
+    dw <- i_("download", lang())
+    downloadTableUI("download_data_button", dw, formats = c("csv", "xlsx", "json"))
+  })
+  
+  
   # descargas
   callModule(downloadTable, "download_data_button", table = reactive(result()$result), formats = c("csv", "xlsx", "json"))
   

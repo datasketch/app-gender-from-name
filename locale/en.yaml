@@ -4,6 +4,10 @@ options: Options
 viz: Viz
 sample: Sample data
 sample_lb: Select a sample data
+sample_ch_nm_0: Names and ages
+sample_ch_0: names_0.csv
+sample_ch_nm_1: Names
+sample_ch_1: names_1.csv
 paste: Copy & paste
 paste_pl: Copy and paste it here
 upload: CSV/XLS upload  
@@ -20,6 +24,8 @@ language: Names' language
 name_column: Gender column
 female: Female
 male: Male
+F: F 
+M: M
 download_table: Download table
 es: Espanish
 en: English

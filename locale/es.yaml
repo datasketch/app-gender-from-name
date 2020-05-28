@@ -4,6 +4,10 @@ options: Opciones
 viz: Vizualización
 sample: Datos de muestra
 sample_lb: Selecciona datos de muestra
+sample_ch_nm_0: Nombres y edades
+sample_ch_0: nombres_0.csv
+sample_ch_nm_1: Nombres y alturas
+sample_ch_1: nombres_1.csv
 paste: Copiar & pegar
 paste_pl: Copia y pega aquí
 upload: Subir CSV/XLS
@@ -20,6 +24,8 @@ language: Idioma nombres
 name_column: Columna género
 female: Mujer
 male: Hombre
+F: M 
+M: H
 download_table: Descargar tabla
 es: Español
 en: Inglés

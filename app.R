@@ -86,9 +86,7 @@ server <-  function(input, output, session) {
   })
   
   inputData <- eventReactive(labels(), {
-    do.call(callModule, c(tableInput,
-                          "initial_data",
-                          labels()))
+    do.call(callModule, c(tableInput, "initial_data", labels()))
   })
   
   output$dataset <- renderUI({
@@ -165,7 +163,7 @@ server <-  function(input, output, session) {
   # output$modal_button <- renderUI({
   #   shinypanels::modalButton(label = "Download table", modal_id = "test")
   # })
-
+  
   
   output$modal <- renderUI({
     dw <- i_("download", lang())

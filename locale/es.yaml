@@ -1,7 +1,7 @@
 upload_data: Subir datos
 dataset: Datos
 options: Opciones
-viz: Vizualización
+viz: Tabla
 sample: Datos de muestra
 sample_lb: Selecciona datos de muestra
 sample_ch_nm_0: Nombres y edades
@@ -11,17 +11,17 @@ sample_ch_1: nombres_1.csv
 paste: Copiar & pegar
 paste_pl: Copia y pega aquí
 upload: Subir CSV/XLS
-upload_lb: Escoje archivo CSV/XLS
+upload_lb: Escoge archivo CSV/XLS
 upload_bt_lb: Examinar...
 upload_pl: Ningún archivo seleccionado
 google: Google sheets
-google_sh_lb: Datos desde Google Sheet
+google_sh_lb: Datos desde Google sheet
 google_sh_pl: https://docs.google.com/spreadsheets/...
 google_sh_pg_lb: Hoja
 columns: Columna nombres
 results: Resultado como
-language: Idioma nombres
-name_column: Columna género
+language: Idioma
+name_column: Columna
 female: Mujer
 male: Hombre
 F: M 

@@ -1,7 +1,7 @@
 upload_data: Upload data
 dataset: Dataset
 options: Options
-viz: Viz
+viz: Table
 sample: Sample data
 sample_lb: Select a sample data
 sample_ch_nm_0: Names and ages
@@ -15,13 +15,13 @@ upload_lb: Choose CSV/XLS file
 upload_bt_lb: Browse...
 upload_pl: No file selected
 google: Google sheets
-google_sh_lb: Data from Google Sheet
+google_sh_lb: Data from Google sheet
 google_sh_pl: https://docs.google.com/spreadsheets/...
 google_sh_pg_lb: Sheet
 columns: Names' column
 results: Results as
-language: Names' language
-name_column: Gender column
+language: Language
+name_column: Column
 female: Female
 male: Male
 F: F 

@@ -7,6 +7,7 @@ library(dsmodules)
 library(hotr)
 library(homodatum)
 library(tidyverse)
+library(rio)
 library(genero)
 
 

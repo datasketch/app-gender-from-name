@@ -6,9 +6,10 @@ library(V8)
 library(dsmodules)
 library(hotr)
 library(homodatum)
-library(tidyverse)
-library(rio)
+library(purrr)
+# library(rio)
 library(genero)
+library(shinycustomloader)
 
 
 
@@ -24,18 +25,16 @@ ui <- panelsPage(useShi18ny(),
                        color = "chardonnay",
                        body = uiOutput("controls")),
                  panel(title = ui_("viz"),
+                         # div(style = "display: flex; justify-content: space-between;",
+                         #     p(class = "panel-header-title text-chardonnay", "viz"),
+                         #     downloadTableUI("download_data_button", label = "dw", text = "dw", formats = c("csv", "xlsx", "json"), display = "dropdown")),
                        color = "chardonnay",
                        can_collapse = FALSE,
                        body = div(#infomessage(p("Hello")),
                          langSelectorInput("lang", position = "fixed"),
-                         uiOutput("result", height = "80vh"),
-                         # verbatimTextOutput("debug"),
-                         shinypanels::modal(id = "download",
-                                            title = ui_("download_table"),
-                                            # downloadTableUI("download_data_button", "Download", formats = c("csv", "xlsx", "json")))),
-                                            uiOutput("modal"))),
-                       # footer = uiOutput("modal_button")))
-                       footer = shinypanels::modalButton(label = "Download table", modal_id = "download")))
+                         uiOutput("download"),
+                         br(),
+                         withLoader(uiOutput("result"), type = "image", loader = "loading_gris.gif"))))
 
 
 
@@ -50,7 +49,7 @@ server <-  function(input, output, session) {
     names(choices) <- i_(c("sample", "paste", "upload", "google"), lang = lang())
     tableInputUI("initial_data",
                  choices = choices,
-                 # selected is important for inputs not be re-initialized
+                 # selected is important for inputs not be re-initialized when language changes
                  selected = ifelse(is.null(input$`initial_data-tableInput`), "sampleData", input$`initial_data-tableInput`))
   })
   
@@ -61,8 +60,7 @@ server <-  function(input, output, session) {
     names(sm_f) <- i_(c("sample_ch_nm_0", "sample_ch_nm_1"), lang())
     
     list(sampleLabel = i_("sample_lb", lang()), 
-         # sampleFiles = list("Names" = "data/sampleData/nombres_altura.csv",
-         #                    "Employees" = "data/sampleData/employees.csv"),
+
          sampleFiles = sm_f,
          
          pasteLabel = i_("paste", lang()), 
@@ -93,9 +91,7 @@ server <-  function(input, output, session) {
   output$dataset <- renderUI({
     if (is.null(inputData())) 
       return()
-    # order_var <- input$var_order
-    # suppressWarnings(hotr("hotr_input", data = inputData(), order = order_var, options = list(height = 470), enableCTypes = FALSE))
-    suppressWarnings(hotr("hotr_input", data = inputData(), order = NULL, options = list(height = 470), enableCTypes = FALSE))
+    suppressWarnings(hotr("hotr_input", data = inputData(), order = NULL, options = list(height = "80vh"), enableCTypes = FALSE))
   })
   
   path <- "parmesan"
@@ -138,12 +134,19 @@ server <-  function(input, output, session) {
     which_name_column(data_input_names())
   })
   
+  
   result <- reactive({
     req(data_input(), input$male, input$female)
     result_as <- c(male = input$male, female = input$female)
     safe_genero <- safely(genero)
     res <- safe_genero(data_input(), col = input$name_column, result_as = result_as, lang = input$gender_lang)
     res
+  })
+  
+  output$download <- renderUI({
+    lb <- i_("download_table", lang())
+    dw <- i_("download", lang())
+    downloadTableUI("download_data_button", label = lb, text = dw, formats = c("csv", "xlsx", "json"), display = "dropdown")
   })
   
   output$result <- renderUI({
@@ -158,21 +161,10 @@ server <-  function(input, output, session) {
     }
     list(warn,
          # dataTableOutput("resu3  lt_table"),
-         hotr("hotr_result", data = res$result, options = list(height = 470), enableCTypes = FALSE))
+         hotr("hotr_result", data = res$result, options = list(height = "80vh"), enableCTypes = FALSE))
   })
   
-  # output$modal_button <- renderUI({
-  #   shinypanels::modalButton(label = "Download table", modal_id = "test")
-  # })
-  
-  
-  output$modal <- renderUI({
-    dw <- i_("download", lang())
-    downloadTableUI("download_data_button", dw, formats = c("csv", "xlsx", "json"))
-  })
-  
-  
-  # descargas
+  # dowload
   callModule(downloadTable, "download_data_button", table = reactive(result()$result), formats = c("csv", "xlsx", "json"))
   
 }

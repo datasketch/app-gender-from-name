@@ -8,7 +8,7 @@ sample_ch_nm_0: Nombres y edades
 sample_ch_0: nombres_0.csv
 sample_ch_nm_1: Nombres y alturas
 sample_ch_1: nombres_1.csv
-paste: Copiar & pegar
+paste: Copiar y pegar
 paste_pl: Copia y pega aquí
 upload: Subir CSV/XLS
 upload_lb: Escoge archivo CSV/XLS
@@ -27,6 +27,7 @@ male: Hombre
 F: M 
 M: H
 download_table: Descargar tabla
+download: Descargar
 es: Español
 en: Inglés
 pt: Portugués

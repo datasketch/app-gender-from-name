@@ -27,7 +27,8 @@ male: Male
 F: F 
 M: M
 download_table: Download table
-es: Espanish
+download: Download
+es: Spanish
 en: English
 pt: Portuguese
 info_nm: The name of the column that holds the names for the gender classification

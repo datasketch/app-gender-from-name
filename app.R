@@ -6,7 +6,7 @@ library(V8)
 library(dsmodules)
 library(hotr)
 library(homodatum)
-library(purrr)
+library(tidyverse)
 # library(rio)
 library(genero)
 library(shinycustomloader)
@@ -25,9 +25,6 @@ ui <- panelsPage(useShi18ny(),
                        color = "chardonnay",
                        body = uiOutput("controls")),
                  panel(title = ui_("viz"),
-                         # div(style = "display: flex; justify-content: space-between;",
-                         #     p(class = "panel-header-title text-chardonnay", "viz"),
-                         #     downloadTableUI("download_data_button", label = "dw", text = "dw", formats = c("csv", "xlsx", "json"), display = "dropdown")),
                        color = "chardonnay",
                        can_collapse = FALSE,
                        body = div(#infomessage(p("Hello")),
@@ -134,7 +131,6 @@ server <-  function(input, output, session) {
     which_name_column(data_input_names())
   })
   
-  
   result <- reactive({
     req(data_input(), input$male, input$female)
     result_as <- c(male = input$male, female = input$female)
@@ -146,7 +142,7 @@ server <-  function(input, output, session) {
   output$download <- renderUI({
     lb <- i_("download_table", lang())
     dw <- i_("download", lang())
-    downloadTableUI("download_data_button", label = lb, text = dw, formats = c("csv", "xlsx", "json"), display = "dropdown")
+    downloadTableUI("download_data_button", label = lb, text = dw, formats = c("csv", "xlsx", "json"), display = "dropdown", dropdownWidth = 170)
   })
   
   output$result <- renderUI({

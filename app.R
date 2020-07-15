@@ -7,13 +7,13 @@ library(dsmodules)
 library(hotr)
 library(homodatum)
 library(tidyverse)
-# library(rio)
 library(genero)
 library(shinycustomloader)
 
 
 
 ui <- panelsPage(useShi18ny(),
+                 showDebug(),
                  panel(title = ui_("upload_data"), 
                        width = 200,
                        body = uiOutput("table_input")),

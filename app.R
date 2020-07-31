@@ -5,6 +5,7 @@ library(shi18ny)
 library(V8)
 library(dsmodules)
 library(hotr)
+library(tidyr)
 library(homodatum)
 library(genero)
 library(shinycustomloader)
@@ -87,7 +88,6 @@ server <-  function(input, output, session) {
   output$dataset <- renderUI({
     if (is.null(inputData())) 
       return()
-    assign("e0", inputData()(), envir = globalenv())
     suppressWarnings(hotr("hotr_input", data = inputData(), order = NULL, options = list(height = "86vh"), enableCTypes = FALSE))
   })
   

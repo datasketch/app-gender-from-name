@@ -6,7 +6,6 @@ library(V8)
 library(dsmodules)
 library(hotr)
 library(homodatum)
-library(tidyverse)
 library(genero)
 library(shinycustomloader)
 
@@ -29,6 +28,7 @@ ui <- panelsPage(useShi18ny(),
                        color = "chardonnay",
                        can_collapse = FALSE,
                        body = div(#infomessage(p("Hello")),
+                         # HTML('<a id="download_data_button-DownloadTbllink" data-modal="md-download_data_button-DownloadTbllink" class="modal-trigger dropdown-action-item dropdown-action-item-modal-shinypanels" title="Get link" data-action="download_data_button-DownloadTbllink"><img class="dropdown-action-item-image" src="dropdownAction/images/share_link.svg"><span class="dropdown-action-item-label">Get link</span></a>'),
                          langSelectorInput("lang", position = "fixed"),
                          withLoader(uiOutput("result"), type = "image", loader = "loading_gris.gif"))))
 
@@ -56,7 +56,7 @@ server <-  function(input, output, session) {
     names(sm_f) <- i_(c("sample_ch_nm_0", "sample_ch_nm_1"), lang())
     
     list(sampleLabel = i_("sample_lb", lang()), 
-
+         
          sampleFiles = sm_f,
          
          pasteLabel = i_("paste", lang()), 
@@ -87,7 +87,8 @@ server <-  function(input, output, session) {
   output$dataset <- renderUI({
     if (is.null(inputData())) 
       return()
-    suppressWarnings(hotr("hotr_input", data = inputData(), order = NULL, options = list(height = "80vh"), enableCTypes = FALSE))
+    assign("e0", inputData()(), envir = globalenv())
+    suppressWarnings(hotr("hotr_input", data = inputData(), order = NULL, options = list(height = "86vh"), enableCTypes = FALSE))
   })
   
   path <- "parmesan"
@@ -133,7 +134,7 @@ server <-  function(input, output, session) {
   result <- reactive({
     req(data_input(), input$male, input$female)
     result_as <- c(male = input$male, female = input$female)
-    safe_genero <- safely(genero)
+    safe_genero <- purrr::safely(genero)
     res <- safe_genero(data_input(), col = input$name_column, result_as = result_as, lang = input$gender_lang)
     res
   })
@@ -141,14 +142,12 @@ server <-  function(input, output, session) {
   output$download <- renderUI({
     lb <- i_("download_table", lang())
     dw <- i_("download", lang())
-    downloadTableUI("download_data_button", label = lb, text = dw, formats = c("csv", "xlsx", "json"), display = "dropdown", dropdownWidth = 170)
+    gl <- i_("get_link", lang())
+    downloadTableUI("download_data_button", dropdownLabel = lb, text = dw, formats = c("link", "csv", "xlsx", "json"),
+                    display = "dropdown", dropdownWidth = 170, getLinkLabel = gl, modalTitle = gl)
   })
   
   output$result <- renderUI({
-    lapply(c("csv", "xlsx", "json"), function(z) {
-      buttonId <- paste0("download_data_button-DownloadTbl", z)
-      session$sendCustomMessage("setButtonState", c("none", buttonId)) 
-    })
     res <- result()
     warn <- NULL
     if (is.null(res$result)) {
@@ -156,13 +155,16 @@ server <-  function(input, output, session) {
     }
     list(warn,
          # dataTableOutput("resu3  lt_table"),
-         hotr("hotr_result", data = res$result, options = list(height = "80vh"), enableCTypes = FALSE))
+         hotr("hotr_result", data = res$result, options = list(height = "85vh"), enableCTypes = FALSE))
   })
   
   # dowload
-  callModule(downloadTable, "download_data_button", table = reactive(result()$result), formats = c("csv", "xlsx", "json"))
+  callModule(downloadTable, "download_data_button", table = reactive(result()$result), formats = c("link", "csv", "xlsx", "json"),
+             modalFunction = Sys.sleep, modalFunctionArgs = 2)
   
 }
+
+
 
 
 

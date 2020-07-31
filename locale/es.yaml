@@ -28,7 +28,8 @@ F: M
 M: H
 download_table: Descargar tabla
 download: Descargar
+get_link: Obtener enlace
 es: Español
 en: Inglés
 pt: Portugués
-info_nm: EL nombre de la columna que tiene los nombres para la clasificación
+info_nm: El nombre de la columna que tiene los nombres a ser clasificados

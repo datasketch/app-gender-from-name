@@ -8,6 +8,7 @@ library(hotr)
 library(tidyr)
 library(homodatum)
 library(genero)
+library(dspins)
 library(shinycustomloader)
 
 
@@ -143,8 +144,15 @@ server <-  function(input, output, session) {
     lb <- i_("download_table", lang())
     dw <- i_("download", lang())
     gl <- i_("get_link", lang())
+    mb <- list(textInput("slug", i_("gl_slug", lang())),
+               textInput("description", i_("gl_description", lang())),
+               selectInput("license", i_("gl_license", lang()), choices = c("CC0", "CC-BY")),
+               selectizeInput("tags", i_("gl_tags", lang()), choices = list("No tag" = "no-tag"), multiple = TRUE, options = list(plugins= list('remove_button', 'drag_drop'))),
+               selectizeInput("category", i_("gl_category", lang()), choices = list("No category" = "no-category")))
     downloadTableUI("download_data_button", dropdownLabel = lb, text = dw, formats = c("link", "csv", "xlsx", "json"),
-                    display = "dropdown", dropdownWidth = 170, getLinkLabel = gl, modalTitle = gl)
+                    display = "dropdown", dropdownWidth = 170, getLinkLabel = gl, modalTitle = gl, modalBody = mb,
+                    nameLabel = i_("gl_name", lang()), saveButtonLabel = i_("gl_save", lang()), 
+                    linkLabel = i_("gl_url", lang()), iframeLabel = i_("gl_iframe", lang()))
   })
   
   output$result <- renderUI({
@@ -158,9 +166,24 @@ server <-  function(input, output, session) {
          hotr("hotr_result", data = res$result, options = list(height = "85vh"), enableCTypes = FALSE))
   })
   
+  # url params
+  par <- list(user_id = "5efa17497caa2b00156a6468", org_id = NULL, user_name = "brandon", org_name = NULL)
+  url_par <- reactive({
+    url_params(par, session)
+  })
+  
+  # update_url_params(input, session)
+  
   # dowload
-  callModule(downloadTable, "download_data_button", table = reactive(result()$result), formats = c("link", "csv", "xlsx", "json"),
-             modalFunction = Sys.sleep, modalFunctionArgs = 2)
+  callModule(downloadTable, "download_data_button", table = reactive(result()$result), name = "table",
+             formats = c("link", "csv", "xlsx", "json"), modalFunction = pin_fringe_url, 
+             element = reactive(result()$result), element_name = reactive(input$`download_data_button-link-name`),
+             # user_id = params$user_id, org_id = params$org_id, user_name = params$user_name,
+             user_id = reactive(url_par()$inputs$user_id), org_id = reactive(url_par()$inputs$org_id),
+             user_name = reactive(url_par()$inputs$user_name), org_name = reactive(url_par()$inputs$org_name),
+             slug = reactive(input$`download_data_button-slug`),
+             description = reactive(input$`download_data_button-description`), license = reactive(input$`download_data_button-license`),
+             tags = reactive(input$`download_data_button-tags`), category = reactive(input$`download_data_button-category`))
   
 }
 

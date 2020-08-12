@@ -29,6 +29,15 @@ M: M
 download_table: Download table
 download: Download
 get_link: Get link
+gl_name: Name
+gl_slug: Slug
+gl_description: Description
+gl_license: License
+gl_tags: Tags
+gl_category: Category
+gl_save: Save in dslibrary
+gl_url: URL
+gl_iframe: Copy to embed
 es: Spanish
 en: English
 pt: Portuguese

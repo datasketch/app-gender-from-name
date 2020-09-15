@@ -46,6 +46,7 @@ server <-  function(input, output, session) {
     choices <- c("sampleData", "pasted", "fileUpload", "googleSheets")
     names(choices) <- i_(c("sample", "paste", "upload", "google"), lang = lang())
     tableInputUI("initial_data",
+                 label = "",
                  choices = choices,
                  # selected is important for inputs not be re-initialized when language changes
                  selected = ifelse(is.null(input$`initial_data-tableInput`), "sampleData", input$`initial_data-tableInput`))
@@ -82,13 +83,12 @@ server <-  function(input, output, session) {
     )
   })
   
-  inputData <- eventReactive(labels(), {
-    do.call(callModule, c(tableInput, "initial_data", labels()))
+  inputData <- eventReactive(list(labels(), input$`initial_data-tableInput`), {
+    do.call(tableInputServer, c("initial_data", labels()))
   })
   
   output$dataset <- renderUI({
-    if (is.null(inputData())) 
-      return()
+    req(inputData())
     suppressWarnings(hotr("hotr_input", data = inputData(), order = NULL, options = list(height = "86vh"), enableCTypes = FALSE))
   })
   
@@ -121,6 +121,7 @@ server <-  function(input, output, session) {
   data_input <- reactive({
     req(input$hotr_input)
     hotr_table(input$hotr_input)
+    # hotr_fringe(input$hotr_input)
   })
   
   data_input_names <- reactive({
@@ -136,23 +137,22 @@ server <-  function(input, output, session) {
     req(data_input(), input$male, input$female)
     result_as <- c(male = input$male, female = input$female)
     safe_genero <- purrr::safely(genero)
-    res <- safe_genero(data_input(), col = input$name_column, result_as = result_as, lang = input$gender_lang)
-    res
+    safe_genero(data_input(), col = input$name_column, result_as = result_as, lang = input$gender_lang)
   })
   
   output$download <- renderUI({
     lb <- i_("download_table", lang())
     dw <- i_("download", lang())
     gl <- i_("get_link", lang())
-    mb <- list(textInput("slug", i_("gl_slug", lang())),
+    mb <- list(textInput("name", i_("gl_name", lang())),
                textInput("description", i_("gl_description", lang())),
                selectInput("license", i_("gl_license", lang()), choices = c("CC0", "CC-BY")),
                selectizeInput("tags", i_("gl_tags", lang()), choices = list("No tag" = "no-tag"), multiple = TRUE, options = list(plugins= list('remove_button', 'drag_drop'))),
                selectizeInput("category", i_("gl_category", lang()), choices = list("No category" = "no-category")))
-    downloadTableUI("download_data_button", dropdownLabel = lb, text = dw, formats = c("link", "csv", "xlsx", "json"),
-                    display = "dropdown", dropdownWidth = 170, getLinkLabel = gl, modalTitle = gl, modalBody = mb,
-                    nameLabel = i_("gl_name", lang()), saveButtonLabel = i_("gl_save", lang()), 
-                    linkLabel = i_("gl_url", lang()), iframeLabel = i_("gl_iframe", lang()))
+    downloadDsUI("download_data_button", dropdownLabel = lb, text = dw, formats = c("csv", "xlsx", "json"),
+                 display = "dropdown", dropdownWidth = 170, getLinkLabel = gl, modalTitle = gl, modalBody = mb,
+                 modalButtonLabel = i_("gl_save", lang()), modalLinkLabel = i_("gl_url", lang()), modalIframeLabel = i_("gl_iframe", lang()),
+                 modalFormatChoices = c("HTML" = "html", "CSV" = "csv", "JSON" = "json"))
   })
   
   output$result <- renderUI({
@@ -163,27 +163,48 @@ server <-  function(input, output, session) {
     }
     list(warn,
          # dataTableOutput("resu3  lt_table"),
-         hotr("hotr_result", data = res$result, options = list(height = "85vh"), enableCTypes = FALSE))
+         hotr("hotr_result", data = res$result, options = list(height = "85vh", maxRows = 33), enableCTypes = FALSE))
   })
   
   # url params
-  par <- list(user_id = "5efa17497caa2b00156a6468", org_id = NULL, user_name = "brandon", org_name = NULL)
+  par <- list(user_name = "brandon", org_name = NULL)
   url_par <- reactive({
     url_params(par, session)
   })
   
-  # update_url_params(input, session)
+  # función con user board connect y set locale
+  pin_ <- function(x, bkt, ...) {
+    x <- dsmodules:::eval_reactives(x)
+    bkt <- dsmodules:::eval_reactives(bkt)
+    nm <- input$`download_data_button-modal_form-name`
+    if (!nzchar(input$`download_data_button-modal_form-name`)) {
+      nm <- paste0("saved", "_", gsub("[ _:]", "-", substr(as.POSIXct(Sys.time()), 1, 19)))
+      updateTextInput(session, "download_data_button-modal_form-name", value = nm)
+    } 
+    dv <- fringe(x)
+    dv$name <- nm
+    dv$slug <- nm
+    dv$description <- input$`download_data_button-modal_form-description`
+    dv$license <- input$`download_data_button-modal_form-license`
+    dv$tags <- input$`download_data_button-modal_form-tags`
+    dv$category <- input$`download_data_button-modal_form-category`
+    dspins_user_board_connect(bkt)
+    Sys.setlocale(locale = "en_US.UTF-8")
+    pin(dv, bucket_id = bkt)
+  }
+  
   
   # dowload
-  callModule(downloadTable, "download_data_button", table = reactive(result()$result), name = "table",
-             formats = c("link", "csv", "xlsx", "json"), modalFunction = pin_fringe_url, 
-             element = reactive(result()$result), element_name = reactive(input$`download_data_button-link-name`),
-             # user_id = params$user_id, org_id = params$org_id, user_name = params$user_name,
-             user_id = reactive(url_par()$inputs$user_id), org_id = reactive(url_par()$inputs$org_id),
-             user_name = reactive(url_par()$inputs$user_name), org_name = reactive(url_par()$inputs$org_name),
-             slug = reactive(input$`download_data_button-slug`),
-             description = reactive(input$`download_data_button-description`), license = reactive(input$`download_data_button-license`),
-             tags = reactive(input$`download_data_button-tags`), category = reactive(input$`download_data_button-category`))
+  observe({
+    downloadDsServer("download_data_button", element = reactive(result()$result), formats = c("csv", "xlsx", "json"),
+                     errorMessage = i_("gl_error", lang()),
+                     modalFunction = pin_, reactive(result()$result),
+                     bkt = url_par()$inputs$user_name)
+    # downloadDsServer("download_data_button", element = data.frame(a = 1:4), formats = c("csv", "xlsx", "json"),
+    #                  errorMessage = i_("gl_error", lang()),
+    #                  modalFunction = pin_, data.frame(a = 1:4),
+    #                  bkt = url_par()$inputs$user_name)
+  })
   
 }
 

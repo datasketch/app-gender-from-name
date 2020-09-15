@@ -38,6 +38,7 @@ gl_category: Category
 gl_save: Save in dslibrary
 gl_url: URL
 gl_iframe: Copy to embed
+gl_error: There has been a problem; try again later.
 es: Spanish
 en: English
 pt: Portuguese
